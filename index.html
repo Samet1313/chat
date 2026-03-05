@@ -2,10 +2,10 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Zoro Chat</title>
 
 <style>
-
 body{
 margin:0;
 font-family:Arial;
@@ -34,8 +34,9 @@ cursor:pointer;
 }
 
 #error{
-color:red;
+color:#ff6b6b;
 font-size:14px;
+min-height:18px;
 }
 
 #chat{
@@ -47,10 +48,21 @@ height:100vh;
 width:200px;
 background:#1e1f22;
 padding:10px;
+overflow:auto;
 }
 
-#onlineUsers{
-font-size:14px;
+.user{
+display:flex;
+align-items:center;
+gap:6px;
+margin:5px 0;
+}
+
+.avatar{
+width:24px;
+height:24px;
+border-radius:50%;
+object-fit:cover;
 }
 
 #main{
@@ -73,13 +85,23 @@ border-radius:5px;
 position:relative;
 }
 
-.message:hover .delete{
+.message:hover .delete,
+.message:hover .edit{
 display:block;
 }
 
 .delete{
 position:absolute;
 right:5px;
+top:5px;
+cursor:pointer;
+display:none;
+color:red;
+}
+
+.edit{
+position:absolute;
+right:25px;
 top:5px;
 cursor:pointer;
 display:none;
@@ -90,15 +112,31 @@ display:flex;
 gap:5px;
 padding:10px;
 background:#1e1f22;
+align-items:center;
 }
 
 #messageInput{
 flex:1;
 }
 
-</style>
+#emojiPicker{
+position:absolute;
+bottom:60px;
+background:#1e1f22;
+padding:10px;
+border-radius:6px;
+display:none;
+max-width:200px;
+}
 
+.emoji{
+cursor:pointer;
+font-size:20px;
+padding:4px;
+}
+</style>
 </head>
+
 <body>
 
 <div id="login">
@@ -107,6 +145,9 @@ flex:1;
 
 <input id="username" placeholder="kullanıcı adı">
 <input id="password" type="password" placeholder="şifre">
+
+<label>Profil resmi</label>
+<input type="file" id="avatarInput">
 
 <div id="error"></div>
 
@@ -130,11 +171,15 @@ flex:1;
 
 <div id="sendBox">
 
+<button onclick="toggleEmoji()">😀</button>
+
 <input id="messageInput" placeholder="mesaj yaz">
 
 <button onclick="sendMessage()">Gönder</button>
 
 </div>
+
+<div id="emojiPicker"></div>
 
 </div>
 
@@ -153,9 +198,10 @@ query,
 where,
 onSnapshot,
 deleteDoc,
-doc
+doc,
+updateDoc,
+setDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
 
 const firebaseConfig = {
 apiKey: "AIzaSyD5KePIcdesXC8UQGBbqNGU7djehgXiZ6w",
@@ -167,20 +213,35 @@ appId: "1:184713014140:web:0b414e4accc0fc09aa12f9"
 };
 
 const app = initializeApp(firebaseConfig);
-
 const db = getFirestore();
 
 const loginDiv = document.getElementById("login")
 const chatDiv = document.getElementById("chat")
 const errorDiv = document.getElementById("error")
+const emojiPicker = document.getElementById("emojiPicker")
 
 let currentUser = null
+let currentAvatar = ""
 
+const emojis=["😀","😂","😍","😎","😭","😡","👍","👎","🔥","❤️","🎉"]
 
-window.register = async function(){
+emojis.forEach(e=>{
+let span=document.createElement("span")
+span.className="emoji"
+span.innerText=e
+span.onclick=()=>messageInput.value+=e
+emojiPicker.appendChild(span)
+})
 
-let user = username.value.trim()
-let pass = password.value.trim()
+window.toggleEmoji=function(){
+emojiPicker.style.display=
+emojiPicker.style.display==="none"?"block":"none"
+}
+
+window.register=async function(){
+
+let user=username.value.trim()
+let pass=password.value.trim()
 
 errorDiv.innerText=""
 
@@ -194,116 +255,166 @@ errorDiv.innerText="Şifre boş bırakılamaz"
 return
 }
 
-const q = query(
-collection(db,"users"),
-where("username","==",user)
-)
+const q=query(collection(db,"users"),where("username","==",user))
+const snap=await getDocs(q)
 
-const snapshot = await getDocs(q)
-
-if(!snapshot.empty){
-
+if(!snap.empty){
 errorDiv.innerText="Bu kullanıcı adı zaten kullanılıyor"
 return
+}
 
+let avatar=""
+
+if(avatarInput.files[0]){
+avatar=await fileToBase64(avatarInput.files[0])
 }
 
 await addDoc(collection(db,"users"),{
 username:user,
-password:pass
+password:pass,
+avatar:avatar
 })
 
 errorDiv.innerText="Kayıt başarılı"
 
 }
 
+window.login=async function(){
 
-window.login = async function(){
-
-let user = username.value.trim()
-let pass = password.value.trim()
+let user=username.value.trim()
+let pass=password.value.trim()
 
 errorDiv.innerText=""
 
-const q = query(
-collection(db,"users"),
-where("username","==",user)
-)
+const q=query(collection(db,"users"),where("username","==",user))
+const snap=await getDocs(q)
 
-const snapshot = await getDocs(q)
-
-if(snapshot.empty){
-
+if(snap.empty){
 errorDiv.innerText="Kullanıcı bulunamadı"
 return
-
 }
 
-let data = snapshot.docs[0].data()
+let data=snap.docs[0].data()
 
-if(data.password !== pass){
-
+if(data.password!==pass){
 errorDiv.innerText="Şifre yanlış"
 return
-
 }
 
-currentUser = user
+currentUser=user
+currentAvatar=data.avatar||""
 
 loginDiv.style.display="none"
 chatDiv.style.display="flex"
 
+await setDoc(doc(db,"online",user),{
+username:user,
+avatar:currentAvatar
+})
+
 loadMessages()
+loadOnline()
 
 }
 
+window.sendMessage=async function(){
 
-
-async function sendMessage(){
-
-let text = messageInput.value.trim()
-
-if(!text) return
+let text=messageInput.value.trim()
+if(!text)return
 
 await addDoc(collection(db,"messages"),{
-
 user:currentUser,
-text:text
-
+text:text,
+avatar:currentAvatar
 })
 
 messageInput.value=""
-
 }
 
-
+messageInput.addEventListener("keypress",e=>{
+if(e.key==="Enter")sendMessage()
+})
 
 function loadMessages(){
 
-onSnapshot(collection(db,"messages"),snapshot=>{
+onSnapshot(collection(db,"messages"),snap=>{
 
 messages.innerHTML=""
 
-snapshot.forEach(docu=>{
+snap.forEach(d=>{
 
-let data = docu.data()
+let data=d.data()
 
-let div = document.createElement("div")
+let div=document.createElement("div")
 div.className="message"
 
-div.innerHTML =
-"<b>"+data.user+"</b>: "+data.text+
-'<span class="delete">❌</span>'
+let avatarHTML=data.avatar?
+`<img class="avatar" src="${data.avatar}">`:""
+
+div.innerHTML=
+`${avatarHTML}<b>${data.user}</b>: ${data.text}
+<span class="edit">✏</span>
+<span class="delete">❌</span>`
+
+if(data.user===currentUser){
 
 div.querySelector(".delete").onclick=()=>{
+deleteDoc(doc(db,"messages",d.id))
+}
 
-deleteDoc(doc(db,"messages",docu.id))
+div.querySelector(".edit").onclick=async()=>{
+
+let newText=prompt("Mesajı düzenle",data.text)
+if(newText){
+await updateDoc(doc(db,"messages",d.id),{text:newText})
+}
+
+}
 
 }
 
 messages.appendChild(div)
 
 })
+
+})
+
+}
+
+function loadOnline(){
+
+onSnapshot(collection(db,"online"),snap=>{
+
+onlineUsers.innerHTML=""
+
+snap.forEach(d=>{
+
+let data=d.data()
+
+let div=document.createElement("div")
+div.className="user"
+
+div.innerHTML=
+`${data.avatar?`<img class="avatar" src="${data.avatar}">`:""} ${data.username}`
+
+onlineUsers.appendChild(div)
+
+})
+
+})
+
+}
+
+function fileToBase64(file){
+
+return new Promise((res,rej)=>{
+
+let reader=new FileReader()
+
+reader.onload=()=>res(reader.result)
+reader.onerror=err=>rej(err)
+
+reader.readAsDataURL(file)
 
 })
 
