@@ -2,29 +2,29 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Chat</title>
+<title>Zoro Chat</title>
 
 <style>
 
 body{
-font-family:Arial;
-background:#1e1e1e;
-color:white;
 margin:0;
+font-family:Arial;
+background:#2b2d31;
+color:white;
 }
 
 #login{
 display:flex;
 flex-direction:column;
-width:250px;
+width:260px;
 margin:120px auto;
 gap:10px;
 }
 
 input,button{
 padding:10px;
+border-radius:6px;
 border:none;
-border-radius:5px;
 }
 
 button{
@@ -33,9 +33,29 @@ color:white;
 cursor:pointer;
 }
 
+#error{
+color:red;
+font-size:14px;
+}
+
 #chat{
 display:none;
 height:100vh;
+}
+
+#sidebar{
+width:200px;
+background:#1e1f22;
+padding:10px;
+}
+
+#onlineUsers{
+font-size:14px;
+}
+
+#main{
+flex:1;
+display:flex;
 flex-direction:column;
 }
 
@@ -46,11 +66,15 @@ padding:10px;
 }
 
 .message{
-background:#2e2e2e;
+background:#383a40;
 padding:8px;
 margin:5px;
 border-radius:5px;
 position:relative;
+}
+
+.message:hover .delete{
+display:block;
 }
 
 .delete{
@@ -59,18 +83,13 @@ right:5px;
 top:5px;
 cursor:pointer;
 display:none;
-color:red;
-}
-
-.message:hover .delete{
-display:block;
 }
 
 #sendBox{
 display:flex;
 gap:5px;
 padding:10px;
-background:#111;
+background:#1e1f22;
 }
 
 #messageInput{
@@ -84,10 +103,12 @@ flex:1;
 
 <div id="login">
 
-<h2>Kayıt / Giriş</h2>
+<h2>Zoro Chat</h2>
 
 <input id="username" placeholder="kullanıcı adı">
 <input id="password" type="password" placeholder="şifre">
+
+<div id="error"></div>
 
 <button onclick="register()">Kayıt Ol</button>
 <button onclick="login()">Giriş Yap</button>
@@ -96,6 +117,15 @@ flex:1;
 
 <div id="chat">
 
+<div id="sidebar">
+
+<h3>Online</h3>
+<div id="onlineUsers"></div>
+
+</div>
+
+<div id="main">
+
 <div id="messages"></div>
 
 <div id="sendBox">
@@ -103,6 +133,8 @@ flex:1;
 <input id="messageInput" placeholder="mesaj yaz">
 
 <button onclick="sendMessage()">Gönder</button>
+
+</div>
 
 </div>
 
@@ -131,26 +163,49 @@ authDomain: "zoro-69e06.firebaseapp.com",
 projectId: "zoro-69e06",
 storageBucket: "zoro-69e06.firebasestorage.app",
 messagingSenderId: "184713014140",
-appId: "1:184713014140:web:0b414e4accc0fc09aa12f9",
-measurementId: "G-N5CJ37CFPC"
+appId: "1:184713014140:web:0b414e4accc0fc09aa12f9"
 };
 
 const app = initializeApp(firebaseConfig);
 
 const db = getFirestore();
 
-let currentUser = null;
+const loginDiv = document.getElementById("login")
+const chatDiv = document.getElementById("chat")
+const errorDiv = document.getElementById("error")
 
+let currentUser = null
 
 
 window.register = async function(){
 
-let user = username.value
-let pass = password.value
+let user = username.value.trim()
+let pass = password.value.trim()
 
-if(!user || !pass){
-alert("boş bırakma")
+errorDiv.innerText=""
+
+if(!user){
+errorDiv.innerText="Kullanıcı adı boş bırakılamaz"
 return
+}
+
+if(!pass){
+errorDiv.innerText="Şifre boş bırakılamaz"
+return
+}
+
+const q = query(
+collection(db,"users"),
+where("username","==",user)
+)
+
+const snapshot = await getDocs(q)
+
+if(!snapshot.empty){
+
+errorDiv.innerText="Bu kullanıcı adı zaten kullanılıyor"
+return
+
 }
 
 await addDoc(collection(db,"users"),{
@@ -158,36 +213,45 @@ username:user,
 password:pass
 })
 
-alert("kayıt başarılı")
+errorDiv.innerText="Kayıt başarılı"
 
 }
 
 
-
 window.login = async function(){
 
-let user = username.value
-let pass = password.value
+let user = username.value.trim()
+let pass = password.value.trim()
+
+errorDiv.innerText=""
 
 const q = query(
 collection(db,"users"),
-where("username","==",user),
-where("password","==",pass)
+where("username","==",user)
 )
 
-const querySnapshot = await getDocs(q)
+const snapshot = await getDocs(q)
 
-if(querySnapshot.empty){
+if(snapshot.empty){
 
-alert("kullanıcı bulunamadı")
+errorDiv.innerText="Kullanıcı bulunamadı"
+return
+
+}
+
+let data = snapshot.docs[0].data()
+
+if(data.password !== pass){
+
+errorDiv.innerText="Şifre yanlış"
 return
 
 }
 
 currentUser = user
 
-login.style.display="none"
-chat.style.display="flex"
+loginDiv.style.display="none"
+chatDiv.style.display="flex"
 
 loadMessages()
 
@@ -197,7 +261,7 @@ loadMessages()
 
 async function sendMessage(){
 
-let text = messageInput.value
+let text = messageInput.value.trim()
 
 if(!text) return
 
