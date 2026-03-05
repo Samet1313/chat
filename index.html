@@ -4,79 +4,258 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Zoro Chat</title>
+
 <style>
+
 body{margin:0;font-family:Arial;background:#2b2d31;color:white;}
-#login{display:flex;flex-direction:column;width:260px;margin:120px auto;gap:10px;}
-input,button{padding:10px;border-radius:6px;border:none;}
-button{background:#5865f2;color:white;cursor:pointer;}
-#error{color:#ff6b6b;font-size:14px;min-height:18px;}
-#chat{display:none;height:100vh;display:flex;}
-#sidebar{width:200px;background:#1e1f22;padding:10px;overflow:auto;}
-.user{display:flex;align-items:center;gap:6px;margin:5px 0;}
-.avatar{width:24px;height:24px;border-radius:50%;object-fit:cover;}
-#main{flex:1;display:flex;flex-direction:column;}
-#newMsgAlert{display:none;background:#ff3b3b;text-align:center;padding:4px;font-size:14px;}
-#messages{flex:1;overflow:auto;padding:10px;}
-.message{background:#383a40;padding:8px;margin:5px;border-radius:5px;position:relative;display:flex;align-items:flex-start;gap:6px;}
-.message:hover .delete,.message:hover .edit{display:block;}
-.delete{position:absolute;right:5px;top:5px;cursor:pointer;display:none;color:red;}
-.edit{position:absolute;right:25px;top:5px;cursor:pointer;display:none;}
-#sendBox{display:flex;gap:5px;padding:10px;background:#1e1f22;align-items:center;}
-#messageInput{flex:1;}
-#emojiPicker{position:absolute;bottom:60px;background:#1e1f22;padding:10px;border-radius:6px;display:none;max-width:200px;}
-.emoji{cursor:pointer;font-size:20px;padding:4px;}
-#controlBtn{position:absolute;bottom:10px;left:10px;padding:8px 10px;border:none;border-radius:6px;background:#ff6b6b;color:white;cursor:pointer;}
-.message img.messageImg{max-width:200px;max-height:200px;border-radius:6px;margin-top:5px;}
+
+#login{
+display:flex;
+flex-direction:column;
+width:260px;
+margin:120px auto;
+gap:10px;
+}
+
+input,button{
+padding:10px;
+border-radius:6px;
+border:none;
+}
+
+button{
+background:#5865f2;
+color:white;
+cursor:pointer;
+}
+
+#error{
+color:#ff6b6b;
+font-size:14px;
+min-height:18px;
+}
+
+#chat{
+display:none;
+height:100vh;
+display:flex;
+}
+
+#sidebar{
+width:200px;
+background:#1e1f22;
+padding:10px;
+overflow:auto;
+}
+
+.user{
+display:flex;
+align-items:center;
+gap:6px;
+margin:5px 0;
+}
+
+.avatar{
+width:24px;
+height:24px;
+border-radius:50%;
+object-fit:cover;
+}
+
+#main{
+flex:1;
+display:flex;
+flex-direction:column;
+}
+
+#newMsgAlert{
+display:none;
+background:#ff3b3b;
+text-align:center;
+padding:4px;
+font-size:14px;
+}
+
+#messages{
+flex:1;
+overflow:auto;
+padding:10px;
+}
+
+.message{
+background:#383a40;
+padding:8px;
+margin:5px;
+border-radius:5px;
+position:relative;
+display:flex;
+align-items:flex-start;
+gap:6px;
+}
+
+.message:hover .delete,
+.message:hover .edit{
+display:block;
+}
+
+.delete{
+position:absolute;
+right:5px;
+top:5px;
+cursor:pointer;
+display:none;
+color:red;
+}
+
+.edit{
+position:absolute;
+right:25px;
+top:5px;
+cursor:pointer;
+display:none;
+}
+
+#sendBox{
+display:flex;
+gap:5px;
+padding:10px;
+background:#1e1f22;
+align-items:center;
+}
+
+#messageInput{
+flex:1;
+}
+
+#emojiPicker{
+position:absolute;
+bottom:60px;
+background:#1e1f22;
+padding:10px;
+border-radius:6px;
+display:none;
+max-width:200px;
+}
+
+.emoji{
+cursor:pointer;
+font-size:20px;
+padding:4px;
+}
+
+#controlBtn{
+position:absolute;
+bottom:10px;
+left:10px;
+padding:8px 10px;
+border:none;
+border-radius:6px;
+background:#ff6b6b;
+color:white;
+cursor:pointer;
+display:none;
+}
+
+#logoutBtn{
+position:absolute;
+bottom:10px;
+left:110px;
+padding:8px 10px;
+border:none;
+border-radius:6px;
+background:#5865f2;
+color:white;
+cursor:pointer;
+display:none;
+}
+
+.message img.messageImg{
+max-width:200px;
+max-height:200px;
+border-radius:6px;
+margin-top:5px;
+}
+
 </style>
 </head>
+
 <body>
 
 <div id="login">
+
 <h2>Zoro Chat</h2>
+
 <input id="username" placeholder="kullanıcı adı">
 <input id="password" type="password" placeholder="şifre">
+
 <label>Profil resmi</label>
 <input type="file" id="avatarInput">
+
 <div id="error"></div>
+
 <button onclick="register()">Kayıt Ol</button>
 <button onclick="login()">Giriş Yap</button>
+
 </div>
 
+
 <div id="chat">
+
 <div id="sidebar">
 <h3>Kullanıcılar</h3>
 <div id="onlineUsers"></div>
 </div>
 
+
 <div id="main">
+
 <div id="newMsgAlert">Yeni mesaj</div>
+
 <div id="messages"></div>
+
 <div id="sendBox">
+
 <button onclick="toggleEmoji()">😀</button>
+
 <input id="messageInput" placeholder="mesaj yaz">
+
 <input type="file" id="messageFile">
+
 <button onclick="sendMessage()">Gönder</button>
-</div>
-<div id="emojiPicker"></div>
-<button id="controlBtn" onclick="controlAction()">Kontrol</button>
-</div>
+
 </div>
 
+<div id="emojiPicker"></div>
+
+<button id="controlBtn" onclick="controlAction()">Kontrol</button>
+<button id="logoutBtn" onclick="logout()">Çıkış</button>
+
+</div>
+
+</div>
+
+
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, query, where, onSnapshot, deleteDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+
 const firebaseConfig = {
+
 apiKey: "AIzaSyD5KePIcdesXC8UQGBbqNGU7djehgXiZ6w",
 authDomain: "zoro-69e06.firebaseapp.com",
 projectId: "zoro-69e06",
 storageBucket: "zoro-69e06.firebasestorage.app",
 messagingSenderId: "184713014140",
 appId: "1:184713014140:web:0b414e4accc0fc09aa12f9"
+
 };
+
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore();
+
 
 const loginDiv=document.getElementById("login");
 const chatDiv=document.getElementById("chat");
@@ -86,117 +265,332 @@ const messageInput=document.getElementById("messageInput");
 const messageFile=document.getElementById("messageFile");
 const messages=document.getElementById("messages");
 const onlineUsers=document.getElementById("onlineUsers");
+const controlBtn=document.getElementById("controlBtn");
+const logoutBtn=document.getElementById("logoutBtn");
 
 let currentUser=null;
 let currentAvatar="";
 let lastCount=0;
 
-const emojis=["😀","😂","😍","😎","😭","😡","👍","👎","🔥","❤️","🎉"];
-emojis.forEach(e=>{let span=document.createElement("span");span.className="emoji";span.innerText=e;span.onclick=()=>messageInput.value+=e;emojiPicker.appendChild(span)});
 
-window.toggleEmoji=function(){emojiPicker.style.display=emojiPicker.style.display==="none"?"block":"none"}
+const emojis=["😀","😂","😍","😎","😭","😡","👍","👎","🔥","❤️","🎉"];
+
+emojis.forEach(e=>{
+let span=document.createElement("span");
+span.className="emoji";
+span.innerText=e;
+span.onclick=()=>messageInput.value+=e;
+emojiPicker.appendChild(span);
+});
+
+
+window.toggleEmoji=function(){
+emojiPicker.style.display=emojiPicker.style.display==="none"?"block":"none"
+}
+
+
 
 window.register=async function(){
+
 let user=username.value.trim();
 let pass=password.value.trim();
+
 errorDiv.innerText="";
-if(!user){errorDiv.innerText="Kullanıcı adı boş bırakılamaz";return;}
-if(!pass){errorDiv.innerText="Şifre boş bırakılamaz";return;}
+
+if(!user){
+errorDiv.innerText="Kullanıcı adı boş bırakılamaz";
+return;
+}
+
+if(!pass){
+errorDiv.innerText="Şifre boş bırakılamaz";
+return;
+}
+
 const q=query(collection(db,"users"),where("username","==",user));
 const snap=await getDocs(q);
-if(!snap.empty){errorDiv.innerText="Bu kullanıcı adı zaten kullanılıyor";return;}
-let avatar="";
-if(avatarInput.files[0]) avatar=await fileToBase64(avatarInput.files[0]);
-await addDoc(collection(db,"users"),{username:user,password:pass,avatar:avatar});
-errorDiv.innerText="Kayıt başarılı";
+
+if(!snap.empty){
+errorDiv.innerText="Bu kullanıcı adı zaten kullanılıyor";
+return;
 }
+
+let avatar="";
+
+if(avatarInput.files[0])
+avatar=await fileToBase64(avatarInput.files[0]);
+
+await addDoc(collection(db,"users"),{
+username:user,
+password:pass,
+avatar:avatar
+});
+
+errorDiv.innerText="Kayıt başarılı";
+
+}
+
+
 
 window.login=async function(){
+
 let user=username.value.trim();
 let pass=password.value.trim();
+
 errorDiv.innerText="";
+
 const q=query(collection(db,"users"),where("username","==",user));
 const snap=await getDocs(q);
-if(snap.empty){errorDiv.innerText="Kullanıcı bulunamadı";return;}
-let data=snap.docs[0].data();
-if(data.password!==pass){errorDiv.innerText="Şifre yanlış";return;}
-currentUser=user; currentAvatar=data.avatar||"";
-loginDiv.style.display="none"; chatDiv.style.display="flex";
-await setDoc(doc(db,"online",user),{username:user,avatar:currentAvatar});
-loadMessages(); loadOnline();
+
+if(snap.empty){
+errorDiv.innerText="Kullanıcı bulunamadı";
+return;
 }
+
+let data=snap.docs[0].data();
+
+if(data.password!==pass){
+errorDiv.innerText="Şifre yanlış";
+return;
+}
+
+currentUser=user;
+currentAvatar=data.avatar||"";
+
+localStorage.setItem("zoroUser",currentUser);
+localStorage.setItem("zoroAvatar",currentAvatar);
+
+loginDiv.style.display="none";
+chatDiv.style.display="flex";
+
+controlBtn.style.display="block";
+logoutBtn.style.display="block";
+
+await setDoc(doc(db,"online",user),{
+username:user,
+avatar:currentAvatar
+});
+
+loadMessages();
+loadOnline();
+
+}
+
+
 
 window.sendMessage=async function(){
+
 let text=messageInput.value.trim();
 let img="";
-if(messageFile.files[0]){
-  img = await fileToBase64(messageFile.files[0]);
-}
+
+if(messageFile.files[0])
+img=await fileToBase64(messageFile.files[0]);
+
 if(!text && !img) return;
-await addDoc(collection(db,"messages"),{user:currentUser,text:text,avatar:currentAvatar,image:img,timestamp:Date.now()});
-messageInput.value=""; messageFile.value="";
+
+await addDoc(collection(db,"messages"),{
+user:currentUser,
+text:text,
+avatar:currentAvatar,
+image:img,
+timestamp:Date.now()
+});
+
+messageInput.value="";
+messageFile.value="";
+
 }
 
-messageInput.addEventListener("keypress",e=>{if(e.key==="Enter")sendMessage();})
 
-function linkify(text){
-  const urlRegex=/(https?:\/\/[^\s]+)/g;
-  return text.replace(urlRegex,url=>`<a href="${url}" target="_blank" style="color:#61dafb;">${url}</a>`);
-}
+
+messageInput.addEventListener("keypress",e=>{
+if(e.key==="Enter")
+sendMessage();
+});
+
 
 function loadMessages(){
+
 onSnapshot(collection(db,"messages"),snap=>{
+
 let msgs=[];
+
 snap.forEach(d=>msgs.push({id:d.id,...d.data()}));
+
 msgs.sort((a,b)=>a.timestamp-b.timestamp);
+
 messages.innerHTML="";
-if(snap.size>lastCount){newMsgAlert.style.display="block";setTimeout(()=>{newMsgAlert.style.display="none"},1500);}
-lastCount=snap.size;
+
 msgs.forEach(data=>{
-let div=document.createElement("div"); div.className="message";
+
+let div=document.createElement("div");
+div.className="message";
+
 let avatarHTML=data.avatar?`<img class="avatar" src="${data.avatar}">`:"";
-let controls=""; if(data.user===currentUser) controls=`<span class="edit">✏</span><span class="delete">❌</span>`;
-let content=linkify(data.text);
-if(data.image) content+=`<br><img class="messageImg" src="${data.image}">`;
+
+let controls="";
+
+if(data.user===currentUser)
+controls=`<span class="edit">✏</span><span class="delete">❌</span>`;
+
+let content=data.text;
+
+if(data.image)
+content+=`<br><img class="messageImg" src="${data.image}">`;
+
 div.innerHTML=`${avatarHTML}<b>${data.user}</b>: ${content} ${controls}`;
+
 if(data.user===currentUser){
-div.querySelector(".delete").onclick=()=>deleteDoc(doc(db,"messages",data.id));
+
+div.querySelector(".delete").onclick=()=>{
+deleteDoc(doc(db,"messages",data.id))
+}
+
 div.querySelector(".edit").onclick=async()=>{
 let newText=prompt("Mesajı düzenle",data.text);
-if(newText) await updateDoc(doc(db,"messages",data.id),{text:newText});
-}}
-messages.appendChild(div);
-});
-setTimeout(()=>{messages.scrollTop=messages.scrollHeight},50);
-});
+if(newText)
+await updateDoc(doc(db,"messages",data.id),{text:newText});
 }
+
+}
+
+messages.appendChild(div);
+
+});
+
+setTimeout(()=>{
+messages.scrollTop=messages.scrollHeight
+},50);
+
+});
+
+}
+
+
 
 function loadOnline(){
+
 onSnapshot(collection(db,"online"),snap=>{
+
 onlineUsers.innerHTML="";
+
 snap.forEach(d=>{
+
 let data=d.data();
-let div=document.createElement("div"); div.className="user";
+
+let div=document.createElement("div");
+
+div.className="user";
+
 div.textContent=data.username;
+
 onlineUsers.appendChild(div);
+
 });
+
 });
+
 }
 
-function fileToBase64(file){return new Promise((res,rej)=>{let reader=new FileReader();reader.onload=()=>res(reader.result);reader.onerror=err=>rej(err);reader.readAsDataURL(file);});}
 
-// Kontrol butonu
+
+function fileToBase64(file){
+
+return new Promise((res,rej)=>{
+
+let reader=new FileReader();
+
+reader.onload=()=>res(reader.result);
+reader.onerror=err=>rej(err);
+
+reader.readAsDataURL(file);
+
+});
+
+}
+
+
+
+window.logout=async function(){
+
+await deleteDoc(doc(db,"online",currentUser));
+
+localStorage.removeItem("zoroUser");
+localStorage.removeItem("zoroAvatar");
+
+location.reload();
+
+}
+
+
+
 window.controlAction=async function(){
-if(currentUser!=="ZORO"){alert("Bu işlemi yapmak için ZORO olmalısın!");return;}
-let pass=prompt("Şifreyi gir:"); if(pass!=="zoro25"){alert("Şifre yanlış"); return;}
-const onlineSnap=await getDocs(collection(db,"online"));
-let onlineList=onlineSnap.docs.map(d=>d.id);
-const userSnap=await getDocs(collection(db,"users"));
-for(let u of userSnap.docs){ if(!onlineList.includes(u.id)) await deleteDoc(doc(db,"online",u.id)); }
-const msgSnap=await getDocs(collection(db,"messages"));
-for(let m of msgSnap.docs) await deleteDoc(doc(db,"messages",m.id));
-alert("Online olmayanlar temizlendi, sohbet sıfırlandı!");
+
+if(currentUser!=="ZORO"){
+alert("Bu işlemi yapmak için ZORO olmalısın!");
+return;
 }
+
+let pass=prompt("Şifreyi gir:");
+
+if(pass!=="zoro25"){
+alert("Şifre yanlış");
+return;
+}
+
+const onlineSnap=await getDocs(collection(db,"online"));
+
+let onlineList=onlineSnap.docs.map(d=>d.id);
+
+const userSnap=await getDocs(collection(db,"users"));
+
+for(let u of userSnap.docs){
+
+if(!onlineList.includes(u.id))
+await deleteDoc(doc(db,"online",u.id));
+
+}
+
+const msgSnap=await getDocs(collection(db,"messages"));
+
+for(let m of msgSnap.docs)
+await deleteDoc(doc(db,"messages",m.id));
+
+alert("Online olmayanlar temizlendi, sohbet sıfırlandı!");
+
+}
+
+
+
+window.addEventListener("load",async()=>{
+
+let savedUser=localStorage.getItem("zoroUser");
+let savedAvatar=localStorage.getItem("zoroAvatar");
+
+if(savedUser){
+
+currentUser=savedUser;
+currentAvatar=savedAvatar;
+
+loginDiv.style.display="none";
+chatDiv.style.display="flex";
+
+controlBtn.style.display="block";
+logoutBtn.style.display="block";
+
+await setDoc(doc(db,"online",currentUser),{
+username:currentUser,
+avatar:currentAvatar
+});
+
+loadMessages();
+loadOnline();
+
+}
+
+});
+
 </script>
+
 </body>
 </html>
