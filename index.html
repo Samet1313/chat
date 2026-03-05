@@ -13,6 +13,8 @@ button{background:#5865f2;color:white;cursor:pointer;}
 #chat{display:none;height:100vh;display:flex;}
 #sidebar{width:200px;background:#1e1f22;padding:10px;overflow:auto;}
 .user{display:flex;align-items:center;gap:6px;margin:5px 0;}
+.user a{color:#61dafb;text-decoration:none;}
+.user a:hover{text-decoration:underline;}
 .avatar{width:24px;height:24px;border-radius:50%;object-fit:cover;}
 #main{flex:1;display:flex;flex-direction:column;}
 #newMsgAlert{display:none;background:#ff3b3b;text-align:center;padding:4px;font-size:14px;}
@@ -43,7 +45,7 @@ button{background:#5865f2;color:white;cursor:pointer;}
 
 <div id="chat">
 <div id="sidebar">
-<h3>Online</h3>
+<h3>Kullanıcılar</h3>
 <div id="onlineUsers"></div>
 </div>
 
@@ -136,7 +138,7 @@ function loadMessages(){
 onSnapshot(collection(db,"messages"),snap=>{
 let msgs=[];
 snap.forEach(d=>msgs.push({id:d.id,...d.data()}));
-msgs.sort((a,b)=>a.timestamp-b.timestamp); // timestamp'a göre sırala
+msgs.sort((a,b)=>a.timestamp-b.timestamp);
 messages.innerHTML="";
 if(snap.size>lastCount){newMsgAlert.style.display="block";setTimeout(()=>{newMsgAlert.style.display="none"},1500);}
 lastCount=snap.size;
@@ -144,7 +146,9 @@ msgs.forEach(data=>{
 let div=document.createElement("div"); div.className="message";
 let avatarHTML=data.avatar?`<img class="avatar" src="${data.avatar}">`:"";
 let controls=""; if(data.user===currentUser) controls=`<span class="edit">✏</span><span class="delete">❌</span>`;
-div.innerHTML=`${avatarHTML}<b>${data.user}</b>: ${data.text} ${controls}`;
+// Kullanıcı adı tıklanabilir
+let userLink = `<a href="#" onclick="alert('Profil: ${data.user}')">${data.user}</a>`;
+div.innerHTML=`${avatarHTML}<b>${userLink}</b>: ${data.text} ${controls}`;
 if(data.user===currentUser){
 div.querySelector(".delete").onclick=()=>deleteDoc(doc(db,"messages",data.id));
 div.querySelector(".edit").onclick=async()=>{
@@ -163,7 +167,7 @@ onlineUsers.innerHTML="";
 snap.forEach(d=>{
 let data=d.data();
 let div=document.createElement("div"); div.className="user";
-div.innerHTML=`${data.avatar?`<img class="avatar" src="${data.avatar}">`:""} ${data.username}`;
+div.innerHTML=`${data.avatar?`<img class="avatar" src="${data.avatar}">`:""} <a href="#" onclick="alert('Profil: ${data.username}')">${data.username}</a>`;
 onlineUsers.appendChild(div);
 });
 });
