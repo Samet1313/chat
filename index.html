@@ -13,13 +13,11 @@ button{background:#5865f2;color:white;cursor:pointer;}
 #chat{display:none;height:100vh;display:flex;}
 #sidebar{width:200px;background:#1e1f22;padding:10px;overflow:auto;}
 .user{display:flex;align-items:center;gap:6px;margin:5px 0;}
-.user a{color:#61dafb;text-decoration:none;}
-.user a:hover{text-decoration:underline;}
 .avatar{width:24px;height:24px;border-radius:50%;object-fit:cover;}
 #main{flex:1;display:flex;flex-direction:column;}
 #newMsgAlert{display:none;background:#ff3b3b;text-align:center;padding:4px;font-size:14px;}
 #messages{flex:1;overflow:auto;padding:10px;}
-.message{background:#383a40;padding:8px;margin:5px;border-radius:5px;position:relative;display:flex;align-items:center;gap:6px;}
+.message{background:#383a40;padding:8px;margin:5px;border-radius:5px;position:relative;display:flex;align-items:flex-start;gap:6px;}
 .message:hover .delete,.message:hover .edit{display:block;}
 .delete{position:absolute;right:5px;top:5px;cursor:pointer;display:none;color:red;}
 .edit{position:absolute;right:25px;top:5px;cursor:pointer;display:none;}
@@ -28,6 +26,7 @@ button{background:#5865f2;color:white;cursor:pointer;}
 #emojiPicker{position:absolute;bottom:60px;background:#1e1f22;padding:10px;border-radius:6px;display:none;max-width:200px;}
 .emoji{cursor:pointer;font-size:20px;padding:4px;}
 #controlBtn{position:absolute;bottom:10px;left:10px;padding:8px 10px;border:none;border-radius:6px;background:#ff6b6b;color:white;cursor:pointer;}
+.message img.messageImg{max-width:200px;max-height:200px;border-radius:6px;margin-top:5px;}
 </style>
 </head>
 <body>
@@ -55,6 +54,7 @@ button{background:#5865f2;color:white;cursor:pointer;}
 <div id="sendBox">
 <button onclick="toggleEmoji()">😀</button>
 <input id="messageInput" placeholder="mesaj yaz">
+<input type="file" id="messageFile">
 <button onclick="sendMessage()">Gönder</button>
 </div>
 <div id="emojiPicker"></div>
@@ -83,6 +83,7 @@ const chatDiv=document.getElementById("chat");
 const errorDiv=document.getElementById("error");
 const emojiPicker=document.getElementById("emojiPicker");
 const messageInput=document.getElementById("messageInput");
+const messageFile=document.getElementById("messageFile");
 const messages=document.getElementById("messages");
 const onlineUsers=document.getElementById("onlineUsers");
 
@@ -127,12 +128,21 @@ loadMessages(); loadOnline();
 
 window.sendMessage=async function(){
 let text=messageInput.value.trim();
-if(!text)return;
-await addDoc(collection(db,"messages"),{user:currentUser,text:text,avatar:currentAvatar,timestamp:Date.now()});
-messageInput.value="";
+let img="";
+if(messageFile.files[0]){
+  img = await fileToBase64(messageFile.files[0]);
+}
+if(!text && !img) return;
+await addDoc(collection(db,"messages"),{user:currentUser,text:text,avatar:currentAvatar,image:img,timestamp:Date.now()});
+messageInput.value=""; messageFile.value="";
 }
 
 messageInput.addEventListener("keypress",e=>{if(e.key==="Enter")sendMessage();})
+
+function linkify(text){
+  const urlRegex=/(https?:\/\/[^\s]+)/g;
+  return text.replace(urlRegex,url=>`<a href="${url}" target="_blank" style="color:#61dafb;">${url}</a>`);
+}
 
 function loadMessages(){
 onSnapshot(collection(db,"messages"),snap=>{
@@ -146,9 +156,9 @@ msgs.forEach(data=>{
 let div=document.createElement("div"); div.className="message";
 let avatarHTML=data.avatar?`<img class="avatar" src="${data.avatar}">`:"";
 let controls=""; if(data.user===currentUser) controls=`<span class="edit">✏</span><span class="delete">❌</span>`;
-// Kullanıcı adı tıklanabilir
-let userLink = `<a href="#" onclick="alert('Profil: ${data.user}')">${data.user}</a>`;
-div.innerHTML=`${avatarHTML}<b>${userLink}</b>: ${data.text} ${controls}`;
+let content=linkify(data.text);
+if(data.image) content+=`<br><img class="messageImg" src="${data.image}">`;
+div.innerHTML=`${avatarHTML}<b>${data.user}</b>: ${content} ${controls}`;
 if(data.user===currentUser){
 div.querySelector(".delete").onclick=()=>deleteDoc(doc(db,"messages",data.id));
 div.querySelector(".edit").onclick=async()=>{
@@ -167,7 +177,7 @@ onlineUsers.innerHTML="";
 snap.forEach(d=>{
 let data=d.data();
 let div=document.createElement("div"); div.className="user";
-div.innerHTML=`${data.avatar?`<img class="avatar" src="${data.avatar}">`:""} <a href="#" onclick="alert('Profil: ${data.username}')">${data.username}</a>`;
+div.textContent=data.username;
 onlineUsers.appendChild(div);
 });
 });
@@ -179,14 +189,10 @@ function fileToBase64(file){return new Promise((res,rej)=>{let reader=new FileRe
 window.controlAction=async function(){
 if(currentUser!=="ZORO"){alert("Bu işlemi yapmak için ZORO olmalısın!");return;}
 let pass=prompt("Şifreyi gir:"); if(pass!=="zoro25"){alert("Şifre yanlış"); return;}
-// online olmayanları sil
 const onlineSnap=await getDocs(collection(db,"online"));
 let onlineList=onlineSnap.docs.map(d=>d.id);
 const userSnap=await getDocs(collection(db,"users"));
-for(let u of userSnap.docs){
-  if(!onlineList.includes(u.id)) await deleteDoc(doc(db,"online",u.id));
-}
-// bütün mesajları temizle
+for(let u of userSnap.docs){ if(!onlineList.includes(u.id)) await deleteDoc(doc(db,"online",u.id)); }
 const msgSnap=await getDocs(collection(db,"messages"));
 for(let m of msgSnap.docs) await deleteDoc(doc(db,"messages",m.id));
 alert("Online olmayanlar temizlendi, sohbet sıfırlandı!");
